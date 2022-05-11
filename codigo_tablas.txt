@@ -1,0 +1,339 @@
+-- MySQL Workbench Forward Engineering
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
+-- -----------------------------------------------------
+-- Schema fastassitance
+-- -----------------------------------------------------
+
+-- -----------------------------------------------------
+-- Schema fastassitance
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `fastassitance` DEFAULT CHARACTER SET utf8 ;
+USE `fastassitance` ;
+
+-- -----------------------------------------------------
+-- Table `fastassitance`.`regional`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fastassitance`.`regional` (
+  `id_regional` INT NOT NULL AUTO_INCREMENT,
+  `nombre_regional` VARCHAR(45) NULL,
+  PRIMARY KEY (`id_regional`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `fastassitance`.`centro_formacion`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fastassitance`.`centro_formacion` (
+  `id_centro_formacion` INT NOT NULL AUTO_INCREMENT,
+  `nombre_centro_formacion` VARCHAR(45) NULL,
+  `regional_id_regional` INT NOT NULL,
+  PRIMARY KEY (`id_centro_formacion`, `regional_id_regional`),
+  INDEX `fk_centro_formacion_regional1_idx` (`regional_id_regional` ASC) VISIBLE,
+  CONSTRAINT `fk_centro_formacion_regional1`
+    FOREIGN KEY (`regional_id_regional`)
+    REFERENCES `fastassitance`.`regional` (`id_regional`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `fastassitance`.`programa_formacion`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fastassitance`.`programa_formacion` (
+  `id_programa_formacion` INT NOT NULL AUTO_INCREMENT,
+  `nombre_programa_formacion` VARCHAR(45) NULL,
+  `centro_formacion_id_centro_formacion` INT NOT NULL,
+  `centro_formacion_regional_id_regional` INT NOT NULL,
+  PRIMARY KEY (`id_programa_formacion`, `centro_formacion_id_centro_formacion`, `centro_formacion_regional_id_regional`),
+  INDEX `fk_programa_formacion_centro_formacion1_idx` (`centro_formacion_id_centro_formacion` ASC, `centro_formacion_regional_id_regional` ASC) VISIBLE,
+  CONSTRAINT `fk_programa_formacion_centro_formacion1`
+    FOREIGN KEY (`centro_formacion_id_centro_formacion` , `centro_formacion_regional_id_regional`)
+    REFERENCES `fastassitance`.`centro_formacion` (`id_centro_formacion` , `regional_id_regional`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `fastassitance`.`persona`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fastassitance`.`persona` (
+  `identificanion` INT NOT NULL AUTO_INCREMENT,
+  `tipo_id` VARCHAR(45) NULL,
+  `nombres` VARCHAR(45) NULL,
+  `apellidos` VARCHAR(45) NULL,
+  `sexo` VARCHAR(45) NULL,
+  `telefono` VARCHAR(45) NULL,
+  `email` VARCHAR(45) NULL,
+  PRIMARY KEY (`identificanion`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `fastassitance`.`trimestre`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fastassitance`.`trimestre` (
+  `id_trimestre` INT NOT NULL AUTO_INCREMENT,
+  `num_trimestre` VARCHAR(45) NULL,
+  PRIMARY KEY (`id_trimestre`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `fastassitance`.`ficha`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fastassitance`.`ficha` (
+  `id_ficha` INT NOT NULL AUTO_INCREMENT,
+  `programa_formacion_id_programa_formacion` INT NOT NULL,
+  `programa_formacion_centro_formacion_id_centro_formacion` INT NOT NULL,
+  `programa_formacion_centro_formacion_regional_id_regional` INT NOT NULL,
+  PRIMARY KEY (`id_ficha`),
+  INDEX `fk_ficha_programa_formacion1_idx` (`programa_formacion_id_programa_formacion` ASC, `programa_formacion_centro_formacion_id_centro_formacion` ASC, `programa_formacion_centro_formacion_regional_id_regional` ASC) VISIBLE,
+  CONSTRAINT `fk_ficha_programa_formacion1`
+    FOREIGN KEY (`programa_formacion_id_programa_formacion` , `programa_formacion_centro_formacion_id_centro_formacion` , `programa_formacion_centro_formacion_regional_id_regional`)
+    REFERENCES `fastassitance`.`programa_formacion` (`id_programa_formacion` , `centro_formacion_id_centro_formacion` , `centro_formacion_regional_id_regional`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `fastassitance`.`aprendiz`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fastassitance`.`aprendiz` (
+  `id_aprendiz` INT NOT NULL AUTO_INCREMENT,
+  `huella` BLOB NULL,
+  `programa_formacion_id_programa_formacion` INT NOT NULL,
+  `persona_identificanion` INT NOT NULL,
+  `trimestre_id_trimestre` INT NOT NULL,
+  `ficha_id_ficha` INT NOT NULL,
+  PRIMARY KEY (`id_aprendiz`, `persona_identificanion`),
+  INDEX `fk_aprendiz_programa_formacion1_idx` (`programa_formacion_id_programa_formacion` ASC) VISIBLE,
+  INDEX `fk_aprendiz_persona1_idx` (`persona_identificanion` ASC) VISIBLE,
+  INDEX `fk_aprendiz_trimestre1_idx` (`trimestre_id_trimestre` ASC) VISIBLE,
+  INDEX `fk_aprendiz_ficha1_idx` (`ficha_id_ficha` ASC) VISIBLE,
+  CONSTRAINT `fk_aprendiz_programa_formacion1`
+    FOREIGN KEY (`programa_formacion_id_programa_formacion`)
+    REFERENCES `fastassitance`.`programa_formacion` (`id_programa_formacion`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_aprendiz_persona1`
+    FOREIGN KEY (`persona_identificanion`)
+    REFERENCES `fastassitance`.`persona` (`identificanion`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_aprendiz_trimestre1`
+    FOREIGN KEY (`trimestre_id_trimestre`)
+    REFERENCES `fastassitance`.`trimestre` (`id_trimestre`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_aprendiz_ficha1`
+    FOREIGN KEY (`ficha_id_ficha`)
+    REFERENCES `fastassitance`.`ficha` (`id_ficha`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `fastassitance`.`clase`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fastassitance`.`clase` (
+  `id_clase` INT NOT NULL AUTO_INCREMENT,
+  `nombre_clase` VARCHAR(45) NULL,
+  `trimestre_id_trimestre` INT NOT NULL,
+  PRIMARY KEY (`id_clase`, `trimestre_id_trimestre`),
+  INDEX `fk_clase_trimestre1_idx` (`trimestre_id_trimestre` ASC) VISIBLE,
+  CONSTRAINT `fk_clase_trimestre1`
+    FOREIGN KEY (`trimestre_id_trimestre`)
+    REFERENCES `fastassitance`.`trimestre` (`id_trimestre`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `fastassitance`.`instructor`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fastassitance`.`instructor` (
+  `id_instructor` INT NOT NULL AUTO_INCREMENT,
+  `persona_identificanion` INT NOT NULL,
+  `centro_formacion_id_centro_formacion` INT NOT NULL,
+  `centro_formacion_regional_id_regional` INT NOT NULL,
+  PRIMARY KEY (`id_instructor`, `persona_identificanion`),
+  INDEX `fk_instructor_persona1_idx` (`persona_identificanion` ASC) VISIBLE,
+  INDEX `fk_instructor_centro_formacion1_idx` (`centro_formacion_id_centro_formacion` ASC, `centro_formacion_regional_id_regional` ASC) VISIBLE,
+  CONSTRAINT `fk_instructor_persona1`
+    FOREIGN KEY (`persona_identificanion`)
+    REFERENCES `fastassitance`.`persona` (`identificanion`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_instructor_centro_formacion1`
+    FOREIGN KEY (`centro_formacion_id_centro_formacion` , `centro_formacion_regional_id_regional`)
+    REFERENCES `fastassitance`.`centro_formacion` (`id_centro_formacion` , `regional_id_regional`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `fastassitance`.`usuario`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fastassitance`.`usuario` (
+  `id_usuario` INT NOT NULL,
+  `usuario` VARCHAR(45) NULL,
+  `contraseña` VARCHAR(45) NULL,
+  `persona_identificanion` INT NOT NULL,
+  PRIMARY KEY (`id_usuario`, `persona_identificanion`),
+  CONSTRAINT `fk_usuario_persona`
+    FOREIGN KEY (`persona_identificanion`)
+    REFERENCES `fastassitance`.`persona` (`identificanion`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `fastassitance`.`administrador`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fastassitance`.`administrador` (
+  `id_administrador` INT NOT NULL AUTO_INCREMENT,
+  `cargo` VARCHAR(45) NULL,
+  `persona_identificanion` INT NOT NULL,
+  `centro_formacion_id_centro_formacion` INT NOT NULL,
+  `centro_formacion_regional_id_regional` INT NOT NULL,
+  PRIMARY KEY (`id_administrador`, `persona_identificanion`),
+  INDEX `fk_administrador_persona1_idx` (`persona_identificanion` ASC) VISIBLE,
+  INDEX `fk_administrador_centro_formacion1_idx` (`centro_formacion_id_centro_formacion` ASC, `centro_formacion_regional_id_regional` ASC) VISIBLE,
+  CONSTRAINT `fk_administrador_persona1`
+    FOREIGN KEY (`persona_identificanion`)
+    REFERENCES `fastassitance`.`persona` (`identificanion`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_administrador_centro_formacion1`
+    FOREIGN KEY (`centro_formacion_id_centro_formacion` , `centro_formacion_regional_id_regional`)
+    REFERENCES `fastassitance`.`centro_formacion` (`id_centro_formacion` , `regional_id_regional`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `fastassitance`.`horario`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fastassitance`.`horario` (
+  `id_horario` INT NOT NULL AUTO_INCREMENT,
+  `hora_inicio` TIME NULL,
+  `hora_final` TIME NULL,
+  `fecha` DATE NULL,
+  `jornada` VARCHAR(45) NULL,
+  PRIMARY KEY (`id_horario`))
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `fastassitance`.`instructor_clase`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fastassitance`.`instructor_clase` (
+  `instructor_id_instructor` INT NOT NULL,
+  `instructor_persona_identificanion` INT NOT NULL,
+  `clase_id_clase` INT NOT NULL,
+  `horario_id_horario` INT NOT NULL,
+  PRIMARY KEY (`instructor_id_instructor`, `instructor_persona_identificanion`, `clase_id_clase`),
+  INDEX `fk_instructor_has_clase_clase1_idx` (`clase_id_clase` ASC) VISIBLE,
+  INDEX `fk_instructor_has_clase_instructor1_idx` (`instructor_id_instructor` ASC, `instructor_persona_identificanion` ASC) VISIBLE,
+  INDEX `fk_instructor_clase_horario1_idx` (`horario_id_horario` ASC) VISIBLE,
+  CONSTRAINT `fk_instructor_has_clase_instructor1`
+    FOREIGN KEY (`instructor_id_instructor` , `instructor_persona_identificanion`)
+    REFERENCES `fastassitance`.`instructor` (`id_instructor` , `persona_identificanion`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_instructor_has_clase_clase1`
+    FOREIGN KEY (`clase_id_clase`)
+    REFERENCES `fastassitance`.`clase` (`id_clase`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_instructor_clase_horario1`
+    FOREIGN KEY (`horario_id_horario`)
+    REFERENCES `fastassitance`.`horario` (`id_horario`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `fastassitance`.`horario_aprendiz`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fastassitance`.`horario_aprendiz` (
+  `horario_id_horario` INT NOT NULL,
+  `aprendiz_id_aprendiz` INT NOT NULL,
+  PRIMARY KEY (`horario_id_horario`, `aprendiz_id_aprendiz`),
+  INDEX `fk_horario_has_aprendiz_aprendiz1_idx` (`aprendiz_id_aprendiz` ASC) VISIBLE,
+  INDEX `fk_horario_has_aprendiz_horario1_idx` (`horario_id_horario` ASC) VISIBLE,
+  CONSTRAINT `fk_horario_has_aprendiz_horario1`
+    FOREIGN KEY (`horario_id_horario`)
+    REFERENCES `fastassitance`.`horario` (`id_horario`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_horario_has_aprendiz_aprendiz1`
+    FOREIGN KEY (`aprendiz_id_aprendiz`)
+    REFERENCES `fastassitance`.`aprendiz` (`id_aprendiz`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `fastassitance`.`clase_has_programa_formacion`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fastassitance`.`clase_has_programa_formacion` (
+  `clase_id_clase` INT NOT NULL,
+  `clase_trimestre_id_trimestre` INT NOT NULL,
+  `programa_formacion_id_programa_formacion` INT NOT NULL,
+  PRIMARY KEY (`clase_id_clase`, `clase_trimestre_id_trimestre`, `programa_formacion_id_programa_formacion`),
+  INDEX `fk_clase_has_programa_formacion_programa_formacion1_idx` (`programa_formacion_id_programa_formacion` ASC) VISIBLE,
+  INDEX `fk_clase_has_programa_formacion_clase1_idx` (`clase_id_clase` ASC, `clase_trimestre_id_trimestre` ASC) VISIBLE,
+  CONSTRAINT `fk_clase_has_programa_formacion_clase1`
+    FOREIGN KEY (`clase_id_clase` , `clase_trimestre_id_trimestre`)
+    REFERENCES `fastassitance`.`clase` (`id_clase` , `trimestre_id_trimestre`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_clase_has_programa_formacion_programa_formacion1`
+    FOREIGN KEY (`programa_formacion_id_programa_formacion`)
+    REFERENCES `fastassitance`.`programa_formacion` (`id_programa_formacion`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `fastassitance`.`ficha_clase`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `fastassitance`.`ficha_clase` (
+  `ficha_id_ficha` INT NOT NULL,
+  `clase_id_clase` INT NOT NULL,
+  `clase_trimestre_id_trimestre` INT NOT NULL,
+  PRIMARY KEY (`ficha_id_ficha`, `clase_id_clase`, `clase_trimestre_id_trimestre`),
+  INDEX `fk_ficha_has_clase_clase1_idx` (`clase_id_clase` ASC, `clase_trimestre_id_trimestre` ASC) VISIBLE,
+  INDEX `fk_ficha_has_clase_ficha1_idx` (`ficha_id_ficha` ASC) VISIBLE,
+  CONSTRAINT `fk_ficha_has_clase_ficha1`
+    FOREIGN KEY (`ficha_id_ficha`)
+    REFERENCES `fastassitance`.`ficha` (`id_ficha`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_ficha_has_clase_clase1`
+    FOREIGN KEY (`clase_id_clase` , `clase_trimestre_id_trimestre`)
+    REFERENCES `fastassitance`.`clase` (`id_clase` , `trimestre_id_trimestre`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
